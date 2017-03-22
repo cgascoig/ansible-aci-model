@@ -1,0 +1,4 @@
+# epg meta
+---
+dependencies:
+  - { role: aci-model }

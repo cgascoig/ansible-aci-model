@@ -1,0 +1,47 @@
+# epg tasks
+---
+  - set_fact: 
+      fvRsDomAtt_list: []
+  - set_fact: 
+      fvRsCons_list: []
+  - set_fact: 
+      fvRsProv_list: []
+
+  - name: "create epg {{ epg_name }} - prepare fvRsDomAtt"
+    set_fact:
+      fvRsDomAtt_list: "{{ fvRsDomAtt_list|default([]) + [{'fvRsDomAtt':{'attributes':{'rn': 'rsdomAtt-['+item+']', 'tDn': item }}}] }}"
+    with_items: "{{ domain_dn_list }}"
+    
+  - name: "create epg {{ epg_name }} - prepare fvRsCons"
+    set_fact:
+      fvRsCons_list: "{{ fvRsCons_list|default([]) + [{'fvRsCons':{'attributes':{'rn': 'rscons-'+item, 'tnVzBrCPName': item }}}] }}"
+    with_items: "{{ consumed_list }}"
+    
+  - name: "create epg {{ epg_name }} - prepare fvRsProv"
+    set_fact:
+      fvRsProv_list: "{{ fvRsProv_list|default([]) + [{'fvRsProv':{'attributes':{'rn': 'rsprov-'+item, 'tnVzBrCPName': item }}}] }}"
+    with_items: "{{ provided_list }}"
+    
+  - set_fact:
+      fvRsBd:
+        fvRsBd:
+          attributes:
+            rn: rsbd
+            tnFvBDName: "{{ bd_name }}"
+  - set_fact:
+      children: "{{ [fvRsBd] + fvRsDomAtt_list|default([]) + fvRsCons_list|default([]) + fvRsProv_list|default([]) }}"
+
+
+  - name: "create epg {{ epg_name }}"
+    aci_model:
+      username: "{{ username }}"
+      password: "{{ password }}"
+      url: "http://{{ inventory_hostname }}/"
+      dn: "uni/tn-{{ tenant_name }}/ap-{{ ap_name }}/epg-{{ epg_name }}"
+      body:
+        fvAEPg:
+          attributes:
+            rn: "epg-{{ epg_name }}"
+            name: "{{ epg_name }}"
+            descr: "{{ description }}"
+          children: "{{ children }}"

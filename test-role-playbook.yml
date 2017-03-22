@@ -1,0 +1,6 @@
+---
+  - hosts: all
+    roles:
+      - role: sample-three-tier-web-app
+        tenant_name: ACILab
+        ap_name: test

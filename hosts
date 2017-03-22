@@ -1,0 +1,7 @@
+[all]
+apic
+
+[all:vars]
+ansible_connection = local
+username = apiuser
+password = apiuser

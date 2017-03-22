@@ -1,0 +1,41 @@
+# contract tasks
+---
+  - set_fact:
+      vzRsSubjFiltAtt_list: []
+
+  - set_fact:
+      vzRsSubjFiltAtt_list: "{{ vzRsSubjFiltAtt_list + [
+        {
+          'vzRsSubjFiltAtt':{
+            'attributes': {
+              'rn': 'rssubjFiltAtt-' + item,
+              'tnVzFilterName': item
+            }
+          }
+        }
+      ]
+      }}"
+    with_items: "{{ filter_name_list }}"
+
+  # - debug:
+  #     msg: "{{ vzRsSubjFiltAtt_list }}"
+
+  - name: create contract
+    aci_model:
+      username: "{{ username }}"
+      password: "{{ password }}"
+      url: "http://{{ inventory_hostname }}/"
+      dn: "uni/tn-{{ tenant_name }}/brc-{{ contract_name }}"
+      body:
+        vzBrCP:
+          attributes:
+            rn: "brc-{{ contract_name }}"
+            name: "{{ contract_name }}"
+            descr: "{{ description }}"
+          children:
+            - vzSubj:
+                attributes:
+                  rn: subj-ansible_subj
+                  name: ansible_subj
+                  revFltPorts: "yes"
+                children: "{{ vzRsSubjFiltAtt_list }}"

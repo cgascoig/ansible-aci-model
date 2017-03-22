@@ -1,0 +1,304 @@
+#!/usr/bin/python
+
+
+DOCUMENTATION = '''
+---
+
+module: aci_model
+short_description: Manage any Managed Objects in an ACI fabric
+description:
+    - Manage any Managed Objects in an ACI fabric. Minimal python module requirements. 
+author: Chris Gascoigne
+requirements:
+    - ACI Fabric
+options:
+    dn:
+        description:
+            - top MO dn E.g. uni/tn-common
+        required: true
+        default: null
+        choices: []
+        aliases: []
+    body:
+        description:
+            - dictionary of attributes and children of the MO
+        required: true
+        default: null
+        choices: []
+        aliases: []
+    url:
+        description:
+            - Base APIC API url. Usually https://<APIC_IP>/
+        required: true
+        default: null
+        choices: []
+        aliases: []
+    username:
+        description:
+            - Username used to login to the switch
+        required: true
+        default: 'readonly'
+        choices: []
+        aliases: []
+    password:
+        description:
+            - Password used to login to the switch
+        required: true
+        default: 'readonly'
+        choices: []
+        aliases: []
+'''
+
+EXAMPLES = '''
+
+TBD
+
+'''
+
+import requests
+import json
+import sys
+
+results = {}
+results['log']=""
+session = None
+
+def log(str):
+    print >>sys.stderr, str
+    results['log']=results['log']+str+"\n"
+    
+def status_code_success(response):
+    if response.status_code >= 200 and response.status_code < 300:
+        return True
+    
+    return False
+    
+def create_url(base_url, query):
+    #TODO - remove double "/" if the base_url has a trailing "/"
+    
+    return base_url + query
+
+def apic_login(base_url, username, password):
+    global session
+    url = create_url(base_url, "/api/aaaLogin.json")
+    body_obj = {
+        'aaaUser': {
+            'attributes': {
+                'name': username,
+                'pwd': password
+            }
+        }
+    }
+    session = requests.Session()
+    res = session.post(url, data=json.dumps(body_obj))
+    
+    if status_code_success(res):
+        log("apic_login successful")
+        return True
+    else:
+        log("apic_login failed: %s"%res.text)
+        session = None
+        return False
+
+
+
+def apic_get(base_url, uri, username, password):
+    """
+    Return JSON object or None. Errors logged to stderr
+    """
+    
+    if session is None:
+        log("No existing session")
+        if not apic_login(base_url, username, password):
+            log("apic_login failed")
+            return None
+        
+    url = create_url(base_url, "/api/mo/" + uri+".json?rsp-subtree=full&rsp-prop-include=all")
+    log("apic_get GET %s"%url)
+    
+    res = session.get(url, headers = {'Accept': 'application/json'})
+    if status_code_success(res):
+        log("apic_get GET %s successful"%url)
+        
+        try:
+            return res.json()
+        except:
+            log("apic_get GET %s JSON decoding failed - response body: %s"%(url, res.text))
+                
+    return None
+    
+def apic_post(base_url, uri, username, password, body):
+    """
+    POST JSON object body. Returns True or False. Errors logged to stderr
+    """
+    if session is None:
+        log("No existing session")
+        if not apic_login(base_url, username, password):
+            log("apic_login failed")
+            return None
+            
+    url = create_url(base_url, "/api/mo/" + uri+".json")
+    log("apic_post POST %s"%url)
+    
+    res = session.post(url, headers = {'Accept': 'application/json'}, json=body)
+    
+    if status_code_success(res):
+        log("apic_post POST %s successful"%url)
+        
+        return True
+                
+    log("apic_post POST %s failed - response body: %s"%(url, res.text))
+    return False
+
+def compare_model(desired_model, current_model):
+    """
+    Return tuple: (missing from desired, missing from current, error)
+    """
+    d={}
+    c={}
+    
+    if current_model == {}:
+        c=desired_model
+        return (d,c,None)
+    
+    #check we're the same class
+    d_class = desired_model.keys()[0]
+    c_class = current_model.keys()[0]
+    if (d_class != c_class):
+        return (None,None,"base classes don't match %s vs %s"%(d_class, c_class))
+        
+        
+    # if either of the models don't have an attributes dictionary add an empty one
+    # if "attributes" not in desired_model[d_class]:
+    #     desired_model[d_class]["attributes"] = {}
+    # if "attributes" not in current_model[d_class]:
+    #     current_model[d_class]["attributes"] = {}
+    
+    # if either of the models don't have an attributes dictionary return error - rn attribute is required
+    if ("attributes" not in desired_model[d_class]) or ("attributes" not in current_model[d_class]):
+        return (None, None, "attributes dictionary is mandatory")
+
+        
+    #check attributes
+    for k,v in desired_model[d_class]["attributes"].iteritems():
+        if k=="rn":
+            continue
+            
+        if (k in current_model[d_class]["attributes"]) and (current_model[d_class]["attributes"][k] == v):
+            continue
+            
+        if d_class not in c:
+            c[d_class]={"attributes": {}, "children": []}
+            
+        c[d_class]["attributes"][k]=v
+    
+    #check children
+    # if either of the models don't have an attributes dictionary add an empty one
+    if "children" not in desired_model[d_class]:
+        desired_model[d_class]["children"] = []
+    if "children" not in current_model[d_class]:
+        current_model[d_class]["children"] = []
+        
+    d_rns={}
+    c_rns={}
+    try:
+        for child in desired_model[d_class]["children"]:
+            d_rns[child[child.keys()[0]]["attributes"]["rn"]] = child
+        for child in current_model[d_class]["children"]:
+            c_rns[child[child.keys()[0]]["attributes"]["rn"]] = child
+    except:
+        #The child is missing attributes or rn so error
+        log("d_children: %s"%desired_model[d_class]["children"])
+        log("c_children: %s"%current_model[d_class]["children"])
+        return (None, None, "attributes dictionary and rn attribute is mandatory")
+        
+    for rn in d_rns:
+        if rn not in c_rns:
+            #the child is in the desired model but not in the current model
+            if d_class not in c:
+                c[d_class]={"attributes": {}, "children": []}
+            c[d_class]["children"].append(d_rns[rn])
+        else:
+            #the child is in both the desired and current model, recurse down to check attrs and children
+            (child_d, child_c, error) = compare_model(d_rns[rn], c_rns[rn])
+            if error is not None:
+                return ({}, {}, error)
+            if child_c is not None and child_c != {}:
+                if d_class not in c:
+                    c[d_class]={"attributes": {}, "children": []}
+                c[d_class]["children"].append(child_c)
+    
+    for rn in c_rns:
+        if rn not in d_rns:
+            #the child is in the current model but not in the desired model
+            if d_class not in d:
+                d[d_class]={"attributes": {}, "children": []}
+            d[d_class]["children"].append(c_rns[rn])
+    
+    return (d,c, None)
+    
+    
+    
+
+def main():
+    module = AnsibleModule(
+        argument_spec=dict(
+            dn=dict(type='str', required=True),
+            body=dict(type='dict', required=True),
+            url=dict(type='str', required=True),
+            username=dict(type='str', default='readonly'),
+            password=dict(type='str', default='readonly'),
+            ignore_removals=dict(type='bool', default='True'),
+            ignore_removal_classes=dict(type='list', default='vzRtSubjFiltAtt, vzRsRevRFltPAtt, vzRsFwdRFltPAtt')
+        ),
+        supports_check_mode=True
+    )
+    
+    base_url = module.params['url']
+    username = module.params['username']
+    password = module.params['password']
+    ignore_removal_classes = module.params['ignore_removal_classes']
+    log("ignore classes: %s"%ignore_removal_classes)
+
+    dn = module.params['dn']
+    body = module.params['body']
+    
+    json_response = apic_get(base_url, dn, username, password)
+    if json_response is None:
+        module.fail_json(msg="APIC API failure", **results)
+        
+        
+    try:
+        current_model = json_response["imdata"][0]
+    except:
+        current_model = {}
+        
+    results['current_model'] = json.dumps(current_model)
+    results['desired_model'] = json.dumps(body)
+    
+    (d_changes, c_changes, error) = compare_model(body, current_model)
+    
+    if error is not None:
+        log("Error comparing models: %s"%error)
+        module.fail_json(msg=error, **results)
+    
+    if module.params['ignore_removals'] == True:
+        d_changes={}
+    
+    changes = (d_changes is not None and d_changes != {}) or (c_changes is not None and c_changes != {})
+    results['apic_changes'] = json.dumps(c_changes)
+    results['apic_removals'] = json.dumps(d_changes)
+    
+    if changes and not module.check_mode:
+        if c_changes is not None and c_changes != {}:
+            response = apic_post(base_url, dn, username, password, body)
+            if not response:
+                module.fail_json(msg="APIC POST for changes failed", **results)
+    
+    results['changed'] = changes
+    
+    module.exit_json(**results)
+
+from ansible.module_utils.basic import *
+if __name__ == '__main__':
+    main()

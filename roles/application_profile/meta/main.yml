@@ -1,0 +1,4 @@
+# application_profile meta
+---
+dependencies:
+  - { role: aci-model }

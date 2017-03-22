@@ -1,0 +1,40 @@
+# three-tier-web-app role tasks
+
+---
+
+# - name: test aci_model
+#   aci_model:
+#     username: "{{ username }}"
+#     password: "{{ password }}"
+#     url: "http://{{ inventory_hostname }}/"
+#     dn: uni/tn-ACILab/ap-test
+#     body:
+#       fvAp:
+#         attributes:
+#           rn: ap-test
+#           name: test
+#           descr: test application profile
+#           nameAlias: ""
+#         children:
+#           - fvAEPg:
+#               attributes:
+#                 rn: epg-web
+#                 name: web
+#                 descr: web EPG
+#               children:
+#                 - fvRsBd:
+#                     attributes:
+#                       rn: rsbd
+#                       tnFvBDName: ACILab_BD1
+#                 - fvRsCons:
+#                     attributes:
+#                       rn: rscons-rmi
+#                       tnVzBrCPName: rmi
+#                 - fvRsProv:
+#                     attributes:
+#                       rn: rsprov-web
+#                       tnVzBrCPName: web
+#                 - fvRsDomAtt:
+#                     attributes:
+#                       rn: rsdomAtt-[uni/vmmp-VMware/dom-aci-vc-1]
+#                       tDn: uni/vmmp-VMware/dom-aci-vc-1

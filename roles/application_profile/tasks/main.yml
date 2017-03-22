@@ -1,0 +1,14 @@
+# application_profile tasks
+---
+  - name: create application profile
+    aci_model:
+      username: "{{ username }}"
+      password: "{{ password }}"
+      url: "http://{{ inventory_hostname }}/"
+      dn: "uni/tn-{{ tenant_name }}/ap-{{ ap_name }}"
+      body:
+        fvAp:
+          attributes:
+            rn: "ap-{{ ap_name }}"
+            name: "{{ ap_name }}"
+            descr: "{{ description }}"

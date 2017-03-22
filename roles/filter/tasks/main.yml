@@ -1,0 +1,40 @@
+#filter tasks
+---
+  - set_fact:
+      vzEntry_list: []
+
+  - set_fact:
+      vzEntry_list: "{{ vzEntry_list + [
+        {
+          'vzEntry': {
+            'attributes': {
+              'rn': 'e-' + item.name,
+              'etherT': item.ether_type|default('unspecified'),
+              'prot': item.proto|default('unspecified'),
+              'dFromPort': item.dest_from_port|default('unspecified'),
+              'dToPort': item.dest_to_port|default('unspecified'),
+              'sToPort': item.source_to_port|default('unspecified'),
+              'sFromPort': item.source_from_port|default('unspecified'),
+              'tcpRules': item.tcp_rules|default('')
+            }
+          }
+        }
+      ]  }}"
+    with_items: "{{ filter_entries|default([]) }}"
+
+  # - debug:
+  #     msg: "{{ vzEntry_list }}"
+
+  - name: "create filter {{ filter_name }}"
+    aci_model:
+      username: "{{ username }}"
+      password: "{{ password }}"
+      url: "http://{{ inventory_hostname }}/"
+      dn: "uni/tn-{{ tenant_name }}/flt-{{ filter_name }}"
+      body:
+        vzFilter:
+          attributes:
+            rn: "flt-{{ filter_name }}"
+            name: "{{ filter_name }}"
+            descr: "{{ description }}"
+          children: "{{ vzEntry_list }}"

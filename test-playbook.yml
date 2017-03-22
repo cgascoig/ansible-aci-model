@@ -1,17 +1,20 @@
 ---
   - hosts: all
+    roles: 
+      - role: aci-model
+      
     tasks:
       - name: test aci_model
         aci_model:
           username: "{{ username }}"
           password: "{{ password }}"
           url: "http://{{ inventory_hostname }}/"
-          dn: uni/tn-ACILab/ap-test
+          dn: uni/tn-ACILab/ap-test-ap
           body:
             fvAp:
               attributes:
-                rn: ap-test
-                name: test
+                rn: ap-test-ap
+                name: test-ap
                 descr: test application profile
                 nameAlias: ""
               children:

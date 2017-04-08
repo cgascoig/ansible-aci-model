@@ -26,11 +26,16 @@ tasks:
 
 See the `test-playbook.yml` for a full example of this. Use `ansible-playbook -i hosts test-playbook.yml` to execute it. 
 
-### Abstracted roles
-In order to simplify usage, abstracted roles for any commonly used ACI construct can be built on top of the aci_model module. Currently roles exist for the following:
-- application_profile
-- epg
-- contract
-- filter
+### Abstracted constructs
+In order to simplify usage, abstracted constructs for any commonly used ACI construct can be built on top of the aci_model module. These constructs are built using action_plugins that are simply wrappers around aci_model. 
 
-An example of using these roles can be found in `sample-three-tier-web-app/meta/main.yml`. Use `ansible-playbook -i hosts test-role-playbook.yml` to execute it. 
+Currently example action_plugins exist for the following:
+- aci_application_profile
+- aci_bd
+- aci_contract
+- aci_epg
+- aci_filter
+- aci_tenant
+- aci_vrf
+
+An example of using these action_plugins can be found in `test-playbook.yml`. Use `ansible-playbook -i hosts test-playbook.yml` to execute it. 

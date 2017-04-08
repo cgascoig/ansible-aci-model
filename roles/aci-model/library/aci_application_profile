@@ -1,0 +1,67 @@
+#!/usr/bin/python
+
+
+DOCUMENTATION = '''
+---
+
+module: aci_application_profile
+short_description: Manage Application Profile in an ACI fabric
+description:
+    - Manage Application Profile in an ACI fabric. 
+author: Chris Gascoigne
+requirements:
+    - ACI Fabric
+options:
+    username:
+        description:
+            - Username used to login to the switch
+        required: true
+        default: 'readonly'
+        choices: []
+        aliases: []
+    password:
+        description:
+            - Password used to login to the switch
+        required: true
+        default: 'readonly'
+        choices: []
+        aliases: []
+    url:
+        description:
+            - Base APIC API url. Usually https://<APIC_IP>/
+        required: true
+        default: null
+        choices: []
+        aliases: []
+    provider:
+        description:
+            - Dictionary containing url, password and username options
+        required: false
+        default: None
+        choices: []
+        aliases: [] 
+
+    ap_name:
+        description:
+            - Name of Application Profile to create
+        required: true
+        default: None
+        choices: []
+        aliases: [] 
+    tenant_name:
+        description:
+            - Name of Tenant to create Application Profile in
+        required: true
+        default: None
+        choices: []
+        aliases: [] 
+    description:
+        description:
+            - Description of Application Profile
+        required: false
+        default: ''
+        choices: []
+        aliases: []
+
+
+'''

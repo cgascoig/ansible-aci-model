@@ -2,41 +2,90 @@
   - hosts: all
     roles: 
       - role: aci-model
+
+    vars:
+      provider:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        url: "http://{{ inventory_hostname }}/"
       
     tasks:
-      - name: test aci_model
-        aci_model:
-          username: "{{ username }}"
-          password: "{{ password }}"
-          url: "http://{{ inventory_hostname }}/"
-          dn: uni/tn-ACILab/ap-test-ap
-          body:
-            fvAp:
-              attributes:
-                rn: ap-test-ap
-                name: test-ap
-                descr: test application profile
-                nameAlias: ""
-              children:
-                - fvAEPg:
-                    attributes:
-                      rn: epg-web
-                      name: web
-                      descr: web EPG
-                    children:
-                      - fvRsBd: 
-                          attributes:
-                            rn: rsbd
-                            tnFvBDName: ACILab_BD1
-                      - fvRsCons:
-                          attributes:
-                            rn: rscons-rmi
-                            tnVzBrCPName: rmi
-                      - fvRsProv:
-                          attributes:
-                            rn: rsprov-web
-                            tnVzBrCPName: web
-                      - fvRsDomAtt:
-                          attributes:
-                            rn: rsdomAtt-[uni/vmmp-VMware/dom-aci-vc-1]
-                            tDn: uni/vmmp-VMware/dom-aci-vc-1
+      - name: test aci_tenant action_plugin
+        aci_tenant:
+          provider: "{{ provider }}"
+          tenant_name: ACILab
+
+      - name: test aci_vrf
+        aci_vrf:
+          provider: "{{ provider }}"
+          tenant_name: ACILab
+          vrf_name: acilab_vrf
+
+      - name: test aci_bd
+        aci_bd:
+          provider: "{{ provider }}"
+          tenant_name: ACILab
+          bd_name: acilab_bd
+          vrf_name: acilab_vrf
+          
+
+      - name: test aci_application_profile action_plugin
+        aci_application_profile:
+          provider: "{{ provider }}"
+          tenant_name: ACILab
+          ap_name: test
+          description: test AP
+
+      - name: test epg action_plugin
+        aci_epg:
+          provider: "{{ provider }}"
+          tenant_name: ACILab
+          ap_name: test
+          epg_name: web
+          description: web EPG
+          bd_name: acilab_bd
+          domain_dn_list:
+            - uni/vmmp-VMware/dom-aci-vc-1
+          provided_list:
+            - rmi
+          consumed_list:
+            - sql
+
+      - name: test aci_contract rmi
+        aci_contract:
+          provider: "{{ provider }}"
+          tenant_name: ACILab
+          contract_name: rmi
+          filter_name_list:
+            - rmi
+
+      - name: test aci_contract sql
+        aci_contract:
+          provider: "{{ provider }}"
+          tenant_name: ACILab
+          contract_name: sql
+          filter_name_list:
+            - sql
+
+      - name: test aci_filter rmi
+        aci_filter:
+          provider: "{{ provider }}"
+          tenant_name: ACILab
+          filter_name: rmi
+          filter_entries: 
+            - name: tcp8080
+              ether_type: ip
+              proto: tcp
+              dest_from_port: "8080"
+              dest_to_port: "8080"
+      - name: test aci_filter sql
+        aci_filter:
+          provider: "{{ provider }}"
+          tenant_name: ACILab
+          filter_name: sql
+          filter_entries: 
+            - name: tcp1366
+              ether_type: ip
+              proto: tcp
+              dest_from_port: "1366"
+              dest_to_port: "1366"

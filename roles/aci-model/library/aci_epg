@@ -1,0 +1,100 @@
+#!/usr/bin/python
+
+
+DOCUMENTATION = '''
+---
+
+module: aci_epg
+short_description: Manage EndPoint Groups (EPGs) in an ACI fabric
+description:
+    - Manage EndPoint Groups (EPGs) in an ACI fabric. 
+author: Chris Gascoigne
+requirements:
+    - ACI Fabric
+options:
+    username:
+        description:
+            - Username used to login to the switch
+        required: true
+        default: 'readonly'
+        choices: []
+        aliases: []
+    password:
+        description:
+            - Password used to login to the switch
+        required: true
+        default: 'readonly'
+        choices: []
+        aliases: []
+    url:
+        description:
+            - Base APIC API url. Usually https://<APIC_IP>/
+        required: true
+        default: null
+        choices: []
+        aliases: []
+    provider:
+        description:
+            - Dictionary containing url, password and username options
+        required: false
+        default: None
+        choices: []
+        aliases: [] 
+    tenant_name:
+        description:
+            - Name of Tenant to create EPG in
+        required: true
+        default: None
+        choices: []
+        aliases: [] 
+    ap_name:
+        description:
+            - Name of Application Profile to create EPG in
+        required: true
+        default: None
+        choices: []
+        aliases: []
+    epg_name:
+        description:
+            - Name of EPG to create
+        required: true
+        default: None
+        choices: []
+        aliases: []
+    description:
+        description:
+            - Description of EPG
+        required: false
+        default: ''
+        choices: []
+        aliases: []
+    bd_name:
+        description:
+            - Name of Bridge Domain to associate EPG with
+        required: true
+        default: None
+        choices: []
+        aliases: []
+    domain_dn_list:
+        description:
+            - List of (physical or VMM) domain dns to associate with EPG
+        required: true
+        default: []
+        choices: []
+        aliases: []
+    provided_list:
+        description:
+            - List of contracts EPG should provide
+        required: true
+        default: []
+        choices: []
+        aliases: []
+    consumed_list:
+        description:
+            - List of contracts EPG should provide
+        required: true
+        default: []
+        choices: []
+        aliases: []
+
+'''

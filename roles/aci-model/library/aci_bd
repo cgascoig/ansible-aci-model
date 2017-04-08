@@ -1,0 +1,74 @@
+#!/usr/bin/python
+
+
+DOCUMENTATION = '''
+---
+
+module: aci_bd
+short_description: Manage Bridge Domain in an ACI fabric
+description:
+    - Manage Bridge Domain in an ACI fabric. 
+author: Chris Gascoigne
+requirements:
+    - ACI Fabric
+options:
+    username:
+        description:
+            - Username used to login to the switch
+        required: true
+        default: 'readonly'
+        choices: []
+        aliases: []
+    password:
+        description:
+            - Password used to login to the switch
+        required: true
+        default: 'readonly'
+        choices: []
+        aliases: []
+    url:
+        description:
+            - Base APIC API url. Usually https://<APIC_IP>/
+        required: true
+        default: null
+        choices: []
+        aliases: []
+    provider:
+        description:
+            - Dictionary containing url, password and username options
+        required: false
+        default: None
+        choices: []
+        aliases: [] 
+
+    bd_name:
+        description:
+            - Name of Bridge Domain to create
+        required: true
+        default: None
+        choices: []
+        aliases: [] 
+    tenant_name:
+        description:
+            - Name of Tenant to create VRF in
+        required: true
+        default: None
+        choices: []
+        aliases: [] 
+    vrf_name:
+        description:
+            - Name of VRF to associate Bridge Domain to
+        required: true
+        default: None
+        choices: []
+        aliases: [] 
+    description:
+        description:
+            - Description of BD
+        required: false
+        default: ''
+        choices: []
+        aliases: []
+
+
+'''
